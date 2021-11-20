@@ -244,10 +244,3 @@ def internal_server_error(error):
         "error": 500,
         "message": 'Internal Server Error'
     }), 500
-
-@app.errorhandler(AuthError)
-def process_AuthError(error):
-    response = jsonify(error.error)
-    response.status_code = error.status_code
-
-    return response

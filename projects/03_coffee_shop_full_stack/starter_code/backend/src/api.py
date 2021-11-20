@@ -41,13 +41,12 @@ def get_drinks():
    
 
     for d in all_drinks:
-        drinks = d.short()
+        drinks = [d.short()]
 
 
     return jsonify({
         "success": True, 
         "drinks": drinks
-
     }), 200
 
 
@@ -63,14 +62,16 @@ def get_drinks():
 @requires_auth('get:drinks-detail')
 def get_drinks_detail(payload):
     all_drinks = Drink.query.all()
-
+    print("Inside get_drinks_detail")
+    print(all_drinks)
     drinks = {}
 
-    if len(all_drinks) == 0:  
-        abort(404)
+    if len(all_drinks) == 0:
+        print("abort 401")
+        abort(401)
 
     for d in all_drinks:
-        drinks = d.long()
+        drinks = [d.long()]
 
     return jsonify({
         'success': True,
@@ -100,10 +101,11 @@ def create_new_drink(payload):
         new_drink.insert()
         new_drink = [new_drink.long()]
 
-        return jsonify({'success': True, 'drinks': new_drink})
+        return jsonify({'success': True, 
+        'drinks': new_drink})
 
     except:
-        abort(400) 
+        abort(401) 
 
 
 '''
@@ -132,7 +134,8 @@ def update_the_drink_id(payload, id):
         drink.recipe = request_bar.get('recipe')
         drink.update()
         drink = [drink.long()]
-        return jsonify({'success': True, 'drinks': drink}), 200
+        return jsonify({'success': True, 
+        'drinks': drink}), 200
 
     except:
         abort(400)
@@ -224,3 +227,27 @@ def method_not_allowed(error):
         "error": 405,
         "message": 'Method Not Allowed'
     }), 405
+
+
+@app.errorhandler(401)
+def no_credentials(error):
+    return jsonify({
+        "success": False,
+        "error": 401,
+        "message": 'No credentials are present'
+    }), 401    
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return jsonify({
+        "success": False,
+        "error": 500,
+        "message": 'Internal Server Error'
+    }), 500
+
+@app.errorhandler(AuthError)
+def process_AuthError(error):
+    response = jsonify(error.error)
+    response.status_code = error.status_code
+
+    return response
